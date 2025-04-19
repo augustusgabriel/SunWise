@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import './pages/home.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -7,15 +8,34 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SunWise',
+      title: 'Flutter App Energia',
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
+
+      // Tema Claro
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.brown),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.brown,
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+        brightness: Brightness.light,
       ),
-      home: const MyHomePage(title: 'SunWise Home Page'),
+
+      // Tema Escuro
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.brown,
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+        brightness: Brightness.dark,
+      ),
+
+      home: const MyHomePage(title: 'Energia Sustentável'),
     );
   }
 }
