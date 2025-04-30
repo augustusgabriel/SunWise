@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import './pages/home.dart';
-import './pages/calc_consumo.dart';
+import 'pages/calc_page.dart';
 import './pages/fornecedores.dart';
 import './pages/simulador.dart';
+import './pages/cadastroPage.dart';
 
 void main() {
   runApp(MyApp());
@@ -58,7 +59,8 @@ class _MyAppState extends State<MyApp> {
         '/home': (context) => MyHomePage(title: 'Energia Sustentável', onThemeToggle: (isDark) => true,),
         '/calculadora': (context) => CalculadoraPage(),
         '/simulador': (context) => SimuladorPage(),
-        '/fornecedores': (context) => FornecedoresPage()
+        '/fornecedores': (context) => FornecedoresPage(),
+        '/cadastro': (context) => CadastroScreen()
       },
     );
   }

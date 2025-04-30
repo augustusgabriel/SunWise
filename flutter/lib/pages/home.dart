@@ -75,6 +75,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
+                    icon: const Icon(Icons.login),
+                    tooltip: 'Cadastro',
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/cadastro');
+                    },
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.calculate),
                     tooltip: 'Calculadora de Consumo',
                     onPressed: () {
