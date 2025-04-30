@@ -1,98 +1,76 @@
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
-  final String title;
-  final void Function(ThemeMode)? onThemeChanged;
-
   const MyHomePage({
     super.key,
     required this.title,
-    this.onThemeChanged,
+    required this.onThemeToggle,
   });
+
+  final String title;
+  final void Function(bool isDark) onThemeToggle;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
- 
+  String mockUserName = 'João'; // Nome mockado
+
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(widget.title, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onPrimary),
       ),
       drawer: SafeArea(
         child: Drawer(
+          backgroundColor: Theme.of(context).colorScheme.surface,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Perfil do Usuário
+              const SizedBox(height: 20),
+
+              // Nome do usuário
               ListTile(
                 leading: const Icon(Icons.person),
-                title: const Text('Olá, João Silva!'), // Nome mockado
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Perfil do usuário (ainda em construção)')),
-                  );
-                },
+                title: Text("Olá, $mockUserName!"),
               ),
-              const Divider(),
-              // Configurações
+
+              // Tema toggle (modo escuro/claro)
               ListTile(
-                leading: const Icon(Icons.settings),
-                title: const Text('Configurações'),
+                leading: const Icon(Icons.light_mode),
+                title: const Text("Alternar tema"),
                 onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text('Estilo do App'),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.light_mode),
-                              title: const Text('Modo Claro'),
-                              onTap: () {
-                                Navigator.pop(context);
-                                widget.onThemeChanged?.call(ThemeMode.light);
-                              },
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.dark_mode),
-                              title: const Text('Modo Escuro'),
-                              onTap: () {
-                                Navigator.pop(context);
-                                widget.onThemeChanged?.call(ThemeMode.dark);
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
+                  final isCurrentlyLight = brightness == Brightness.light;
+                  widget.onThemeToggle(isCurrentlyLight); // Alterna o tema
+                  Navigator.pop(context); // Fecha o drawer
                 },
               ),
-              const Divider(),
-              // Logout (sem ação por enquanto)
+
+              // Logout sem ação
               ListTile(
                 leading: const Icon(Icons.logout_outlined),
-                title: const Text('Sair'),
-                onTap: () {
-                  // Nenhuma ação ainda
-                },
+                title: const Text("Sair"),
+                onTap: () {}, // Placeholder
               ),
             ],
           ),
         ),
       ),
-      body: Center(
+       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text("Olá, [Nome]! Vamos otimizar o uso de energia de forma inteligente e sustentável!"),
+            Text(
+              "Olá, $mockUserName! Vamos otimizar o uso de energia de forma inteligente e sustentável!",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
+            const SizedBox(height: 20),
             Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

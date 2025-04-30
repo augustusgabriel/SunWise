@@ -1,41 +1,65 @@
 import 'package:flutter/material.dart';
 import './pages/home.dart';
+import './pages/calc_consumo.dart';
+import './pages/fornecedores.dart';
+import './pages/simulador.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.light;
+
+  void toggleTheme(bool isDark) {
+    setState(() {
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter App Energia',
+      title: 'App Energia',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.system,
-
-      // Tema Claro
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.brown,
-          brightness: Brightness.light,
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFFFEBA17),
+          secondary: Color(0xFF74512D),
+          surface: Color(0xFFF8F4E1),
+          onSurface: Colors.black,
         ),
         useMaterial3: true,
-        brightness: Brightness.light,
+        scaffoldBackgroundColor: Color(0xFFF8F4E1),
       ),
-
-      // Tema Escuro
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.brown,
-          brightness: Brightness.dark,
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFFEBA17),
+          secondary: Color(0xFF74512D),
+          surface: Color(0xFF4E1F00),
+          onSurface: Colors.white,
         ),
         useMaterial3: true,
-        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Color(0xFF4E1F00),
       ),
-
-      home: const MyHomePage(title: 'Energia Sustentável'),
+      themeMode: _themeMode,
+      home: MyHomePage(
+        title: 'Energia Sustentável',
+        onThemeToggle: toggleTheme,
+      ),
+      routes: {
+        '/home': (context) => MyHomePage(title: 'Energia Sustentável', onThemeToggle: (isDark) => true,),
+        '/calculadora': (context) => CalculadoraPage(),
+        '/simulador': (context) => SimuladorPage(),
+        '/fornecedores': (context) => FornecedoresPage()
+      },
     );
   }
 }
