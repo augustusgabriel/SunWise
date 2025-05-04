@@ -8,9 +8,7 @@ import '../../providers/app_nav_bottom.dart';
 import '../../database/dao/usuario_dao.dart';
 
 class SimuladorPage extends StatefulWidget {
-  const SimuladorPage({super.key, required this.onThemeToggle});
-
-  final void Function(bool isDark) onThemeToggle;
+  const SimuladorPage({super.key});
 
   @override
   State<SimuladorPage> createState() => _SimuladorPageState();
@@ -23,11 +21,15 @@ class _SimuladorPageState extends State<SimuladorPage> {
   String? sistemaRecomendado;
   String? roi;
   Usuario? usuario;
+  bool _usuarioCarregado = false;
 
   @override
-  void initState() {
-    super.initState();
-    _carregarUsuario();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_usuarioCarregado) {
+      _carregarUsuario();
+      _usuarioCarregado = true;
+    }
   }
 
   void _carregarUsuario() async {
@@ -60,7 +62,6 @@ class _SimuladorPageState extends State<SimuladorPage> {
     final economiaAnual = consumo * 12 * 0.8;
     final custoInicial = consumo * 100;
     final roiCalculado = custoInicial / economiaAnual;
-
     final String dataHoje = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     final simulacao = SimulacaoSolar(
@@ -102,7 +103,6 @@ class _SimuladorPageState extends State<SimuladorPage> {
       ),
       drawer: AppDrawer(
         usuario: usuario,
-        onThemeToggle: widget.onThemeToggle,
         onLogout: _logout,
       ),
       bottomNavigationBar: const AppBottomNavBar(currentRoute: '/simulador'),

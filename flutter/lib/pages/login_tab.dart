@@ -39,7 +39,9 @@ class _LoginTabState extends State<LoginTab> {
         SnackBar(content: Text('Login realizado com sucesso! Bem-vindo, ${usuario.nome}')),
       );
 
-      Navigator.pushReplacementNamed(context, '/homepage');
+      Navigator.pushReplacementNamed(
+        context, '/homepage', arguments: usuario,
+      );
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -79,7 +81,7 @@ class _LoginTabState extends State<LoginTab> {
               onPressed: _login,
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
-                foregroundColor: Colors.black,
+                foregroundColor: theme.colorScheme.onPrimary,
               ),
               child: const Text('Entrar'),
             ),

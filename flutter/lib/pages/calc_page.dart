@@ -10,11 +10,7 @@ import '../../providers/app_drawer.dart';
 import '../../providers/app_nav_bottom.dart';
 
 class CalculadoraPage extends StatefulWidget {
-  const CalculadoraPage({
-    super.key,
-    required this.onThemeToggle,
-  });
-  final void Function(bool isDark) onThemeToggle;
+  const CalculadoraPage({super.key,});
 
   @override
   State<CalculadoraPage> createState() => _CalculadoraPageState();
@@ -30,6 +26,7 @@ class _CalculadoraPageState extends State<CalculadoraPage> {
   double _custoTotalDiario = 0.0;
   final EquipamentoDao _equipamentoDao = EquipamentoDao();
   Usuario? usuarioLogado;
+  bool _carregandoUsuario = true;
   List<Equipamento> equipamentos = [];
 
   @override
@@ -45,10 +42,12 @@ class _CalculadoraPageState extends State<CalculadoraPage> {
     if (mounted) {
       setState(() {
         usuarioLogado = usuario;
+        _carregandoUsuario = false;
       });
       _carregarEquipamentos();
     }
   }
+
 
   Future<void> _carregarEquipamentos() async {
   if (usuarioLogado == null) return;
@@ -70,61 +69,134 @@ class _CalculadoraPageState extends State<CalculadoraPage> {
 
 
   Future<void> _adicionarEquipamento() async {
-  if (_deviceController.text.isEmpty ||
-      _powerController.text.isEmpty ||
-      _timeController.text.isEmpty ||
-      usuarioLogado == null) {
-    return;
+    final nome = _deviceController.text.trim();
+    final potencia = double.tryParse(_powerController.text.trim());
+    final tempo = double.tryParse(_timeController.text.trim());
+
+    if (nome.isEmpty || potencia == null || tempo == null || usuarioLogado == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Preencha todos os campos corretamente.")),
+      );
+      return;
+    }
+
+    final equipamento = Equipamento(
+      nome: nome,
+      potencia: potencia,
+      tempoUsoDiario: tempo,
+      usuarioId: usuarioLogado!.id!,
+    );
+
+    await _equipamentoDao.inserirEquipamento(equipamento);
+
+    _deviceController.clear();
+    _powerController.clear();
+    _timeController.clear();
+
+    await _carregarEquipamentos();
+
+    final hoje = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    final novoCalculo = CalculoConsumo(
+      consumoTotal: _consumoTotalDiario,
+      custoTotal: _custoTotalDiario,
+      usuarioId: usuarioLogado!.id!,
+      dataCalculo: hoje,
+    );
+
+    await _calculoDao.inserir(novoCalculo);
+
+    setState(() {}); // Força rebuild
   }
-
-  final equipamento = Equipamento(
-    nome: _deviceController.text,
-    potencia: double.tryParse(_powerController.text) ?? 0.0,
-    tempoUsoDiario: double.tryParse(_timeController.text) ?? 0.0,
-    usuarioId: usuarioLogado!.id!,
-  );
-
-  await _equipamentoDao.inserirEquipamento(equipamento);
-
-  _deviceController.clear();
-  _powerController.clear();
-  _timeController.clear();
-
-  await _carregarEquipamentos();
-
-  final listaAtualizada = await _equipamentoDao.listarPorUsuario(usuarioLogado!.id!);
-
-  final consumoTotal = listaAtualizada.fold(
-    0.0,
-    (soma, e) => soma + (e.potencia * e.tempoUsoDiario / 1000),
-  );
-
-  final custoTotal = consumoTotal * _custoPorKWh;
-
-  final hoje = DateFormat('yyyy-MM-dd').format(DateTime.now());
-
-  final novoCalculo = CalculoConsumo(
-    consumoTotal: consumoTotal,
-    custoTotal: custoTotal,
-    usuarioId: usuarioLogado!.id!,
-    dataCalculo: hoje,
-  );
-
-  await _calculoDao.inserir(novoCalculo);
-}
 
 
   Future<void> _logout() async {
     final dao = UsuarioDao();
     await dao.limparUsuarioLogado();
     if (mounted) {
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // Tenta fechar o Drawer
+      }
       Navigator.pushReplacementNamed(context, '/login');
     }
   }
 
+
+  Widget _buildFormulario(ColorScheme colorScheme) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Text("Insira os dados do dispositivo para calcular o consumo diário."),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _deviceController,
+            decoration: const InputDecoration(labelText: "Nome do dispositivo"),
+          ),
+          TextField(
+            controller: _powerController,
+            decoration: const InputDecoration(labelText: "Potência (Watts)"),
+            keyboardType: TextInputType.number,
+          ),
+          TextField(
+            controller: _timeController,
+            decoration: const InputDecoration(labelText: "Tempo de uso diário (horas)"),
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: usuarioLogado == null ? null : _adicionarEquipamento,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+            ),
+            child: const Text("Adicionar"),
+          ),
+          const SizedBox(height: 24),
+          const Divider(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: equipamentos.length,
+              itemBuilder: (context, index) {
+                final e = equipamentos[index];
+                return ListTile(
+                  leading: const Icon(Icons.bolt),
+                  title: Text(e.nome),
+                  subtitle: Text("Potência: ${e.potencia}W, Uso diário: ${e.tempoUsoDiario}h"),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              children: [
+                Text(
+                  "Consumo total diário: ${_consumoTotalDiario.toStringAsFixed(2)} kWh",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  "Custo diário estimado: R\$ ${_custoTotalDiario.toStringAsFixed(2)}",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    if (_carregandoUsuario) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -134,73 +206,10 @@ class _CalculadoraPageState extends State<CalculadoraPage> {
       ),
       drawer: AppDrawer(
         usuario: usuarioLogado,
-        onThemeToggle: widget.onThemeToggle,
         onLogout: _logout,
       ),
       bottomNavigationBar: const AppBottomNavBar(currentRoute: '/calculadora'),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Text("Insira os dados do dispositivo para calcular o consumo diário."),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _deviceController,
-              decoration: const InputDecoration(labelText: "Nome do dispositivo"),
-            ),
-            TextField(
-              controller: _powerController,
-              decoration: const InputDecoration(labelText: "Potência (Watts)"),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _timeController,
-              decoration: const InputDecoration(labelText: "Tempo de uso diário (horas)"),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _adicionarEquipamento,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-              ),
-              child: const Text("Adicionar"),
-            ),
-
-            const SizedBox(height: 24),
-            const Divider(),
-            Expanded(
-              child: ListView.builder(
-                itemCount: equipamentos.length,
-                itemBuilder: (context, index) {
-                  final e = equipamentos[index];
-                  return ListTile(
-                    leading: const Icon(Icons.bolt),
-                    title: Text(e.nome),
-                    subtitle: Text("Potência: \${e.potencia}W, Uso diário: \${e.tempoUsoDiario}h"),
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Column(
-                children: [
-                  Text(
-                    "Consumo total diário: ${_consumoTotalDiario.toStringAsFixed(2)} kWh",
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "Custo diário estimado: R\$ ${_custoTotalDiario.toStringAsFixed(2)}",
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: _buildFormulario(colorScheme),
     );
   }
 }

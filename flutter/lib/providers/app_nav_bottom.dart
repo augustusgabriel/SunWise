@@ -37,7 +37,11 @@ class AppBottomNavBar extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (!isSelected) {
-          Navigator.pushReplacementNamed(context, route);
+          Navigator.pushReplacementNamed(
+            context,
+            route,
+            arguments: ModalRoute.of(context)?.settings.arguments,
+          );
         }
       },
       child: Column(

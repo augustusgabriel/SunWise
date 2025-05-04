@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/usuario_model.dart';
+import './theme_provider.dart';
 
 class AppDrawer extends StatelessWidget {
   final Usuario? usuario;
-  final void Function(bool isDark) onThemeToggle;
   final VoidCallback onLogout;
 
   const AppDrawer({
     super.key,
     required this.usuario,
-    required this.onThemeToggle,
     required this.onLogout,
   });
 
@@ -31,14 +31,17 @@ class AppDrawer extends StatelessWidget {
             title: const Text("Alternar tema"),
             onTap: () {
               final isCurrentlyLight = brightness == Brightness.light;
-              onThemeToggle(!isCurrentlyLight);
+              Provider.of<ThemeProvider>(context, listen: false).toggleTheme(isCurrentlyLight);
               Navigator.pop(context);
             },
           ),
           ListTile(
             leading: const Icon(Icons.logout_outlined),
             title: const Text("Sair"),
-            onTap: onLogout,
+            onTap: () {
+              Navigator.pop(context);
+              onLogout(); 
+            },
           ),
         ],
       ),

@@ -13,9 +13,7 @@ import '../providers/app_drawer.dart';
 import '../providers/app_nav_bottom.dart';
 
 class FornecedoresPage extends StatefulWidget {
-  const FornecedoresPage({super.key, required this.onThemeToggle});
-
-  final void Function(bool isDark) onThemeToggle;
+  const FornecedoresPage({super.key});
 
   @override
   State<FornecedoresPage> createState() => _FornecedoresPageState();
@@ -32,7 +30,7 @@ class _FornecedoresPageState extends State<FornecedoresPage> {
   @override
   void initState() {
     super.initState();
-    // delay necessário para acessar ModalRoute após build inicial
+    // Delay necessário para acessar o ModalRoute após o build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _carregarUsuarioEIniciar();
     });
@@ -41,12 +39,17 @@ class _FornecedoresPageState extends State<FornecedoresPage> {
   Future<void> _carregarUsuarioEIniciar() async {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Usuario) {
-      usuario = args;
+      setState(() {
+        usuario = args;
+      });
     } else {
-      usuario = await UsuarioDao().buscarUsuarioLogado();
+      final usuarioLogado = await UsuarioDao().buscarUsuarioLogado();
+      if (mounted) {
+        setState(() {
+          usuario = usuarioLogado;
+        });
+      }
     }
-
-    setState(() {}); // atualiza UI com usuário
 
     await _initLocationAndData();
   }
@@ -80,6 +83,7 @@ class _FornecedoresPageState extends State<FornecedoresPage> {
       }
     } catch (e) {
       debugPrint('Erro ao converter endereço: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Não foi possível localizar o endereço. Usando localização padrão.')),
       );
@@ -118,9 +122,9 @@ class _FornecedoresPageState extends State<FornecedoresPage> {
       ),
       drawer: AppDrawer(
         usuario: usuario,
-        onThemeToggle: widget.onThemeToggle,
         onLogout: _logout,
       ),
+      bottomNavigationBar: const AppBottomNavBar(currentRoute: '/fornecedores'),
       body: _userLatLng == null
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -212,7 +216,6 @@ class _FornecedoresPageState extends State<FornecedoresPage> {
                 ],
               ),
             ),
-      bottomNavigationBar: const AppBottomNavBar(currentRoute: '/fornecedores'),
     );
   }
 }

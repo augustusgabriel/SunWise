@@ -45,7 +45,7 @@ Future<Usuario?> buscarUsuarioLogado() async {
   final db = await DatabaseHelper.initDB();
   final maps = await db.query(
     'Usuario',
-    where: 'id = ?',
+    where: 'ID_Usuario = ?',
     whereArgs: [usuarioId],
   );
 

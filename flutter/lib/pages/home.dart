@@ -8,11 +8,9 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({
     super.key,
     required this.title,
-    required this.onThemeToggle,
   });
 
   final String title;
-  final void Function(bool isDark) onThemeToggle;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -24,14 +22,24 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _carregarUsuarioLogado();
+    _carregarUsuarioLogado(); // fallback, caso não venha via argumentos
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Usuario && usuarioLogado == null) {
+      setState(() {
+        usuarioLogado = args;
+      });
+    }
   }
 
   Future<void> _carregarUsuarioLogado() async {
     final dao = UsuarioDao();
     final usuario = await dao.buscarUsuarioLogado();
-
-    if (mounted) {
+    if (mounted && usuarioLogado == null) {
       setState(() {
         usuarioLogado = usuario;
       });
@@ -52,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         backgroundColor: theme.colorScheme.primary,
         title: Text(widget.title, style: TextStyle(color: theme.colorScheme.onPrimary)),
@@ -59,7 +68,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       drawer: AppDrawer(
         usuario: usuarioLogado,
-        onThemeToggle: widget.onThemeToggle,
         onLogout: _logout,
       ),
       bottomNavigationBar: const AppBottomNavBar(currentRoute: '/homepage'),
