@@ -16,4 +16,16 @@ class FornecedorSolucoesDao {
     );
     return result.map((e) => FornecedorSolucoes.fromMap(e)).toList();
   }
+
+  Future<List<FornecedorSolucoes>> listarPorLocalizacao(String localizacao) async {
+  final db = await DatabaseHelper.initDB();
+
+  final List<Map<String, dynamic>> maps = await db.query(
+    'Fornecedor_Solucoes',
+    where: 'Localizacao_Fornecedor LIKE ?',
+    whereArgs: ['%$localizacao%'],
+  );
+
+  return maps.map((map) => FornecedorSolucoes.fromMap(map)).toList();
+}
 }

@@ -12,4 +12,19 @@ class LocalizacaoDao {
     final result = await db.query('Localizacao');
     return result.map((e) => Localizacao.fromMap(e)).toList();
   }
+
+  Future<Localizacao?> buscarPorId(int id) async {
+  final db = await DatabaseHelper.initDB();
+  final result = await db.query(
+    'Localizacao',
+    where: 'ID_Localizacao = ?',
+    whereArgs: [id],
+  );
+
+  if (result.isNotEmpty) {
+    return Localizacao.fromMap(result.first);
+  }
+  return null;
+}
+
 }

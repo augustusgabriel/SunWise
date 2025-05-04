@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import './providers/auth_tab_provider.dart';
+import 'pages/login_register_page.dart';
 import './pages/home.dart';
 import 'pages/calc_page.dart';
 import './pages/fornecedores.dart';
 import './pages/simulador.dart';
-import './pages/cadastroPage.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthTabProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -28,7 +37,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'App Energia',
+      title: 'SunWise',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: const ColorScheme.light(
@@ -44,23 +53,20 @@ class _MyAppState extends State<MyApp> {
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFFFEBA17),
           secondary: Color(0xFF74512D),
-          surface: Color(0xFF4E1F00),
+          surface: Color(0xFF172138),
           onSurface: Colors.white,
         ),
         useMaterial3: true,
-        scaffoldBackgroundColor: Color(0xFF4E1F00),
+        scaffoldBackgroundColor: Color(0xFF172138),
       ),
       themeMode: _themeMode,
-      home: MyHomePage(
-        title: 'Energia Sustentável',
-        onThemeToggle: toggleTheme,
-      ),
+      home: const LoginPage(),
       routes: {
-        '/home': (context) => MyHomePage(title: 'Energia Sustentável', onThemeToggle: (isDark) => true,),
-        '/calculadora': (context) => CalculadoraPage(),
-        '/simulador': (context) => SimuladorPage(),
-        '/fornecedores': (context) => FornecedoresPage(),
-        '/cadastro': (context) => CadastroScreen()
+        '/homepage': (context) =>
+            MyHomePage(title: 'Energia Sustentável', onThemeToggle: (isDark) => true),
+        '/calculadora': (context) => CalculadoraPage(onThemeToggle: (isDark) => true),
+        '/simulador': (context) => SimuladorPage(onThemeToggle: (isDark) => true),
+        '/fornecedores': (context) => FornecedoresPage(onThemeToggle: (isDark) => true),
       },
     );
   }

@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../database/dao/simulacao_solar_dao.dart';
+import '../../models/simulacao_solar_model.dart';
+import '../../models/usuario_model.dart';
+import '../../providers/app_drawer.dart';
+import '../../providers/app_nav_bottom.dart';
+import '../../database/dao/usuario_dao.dart';
 
 class SimuladorPage extends StatefulWidget {
-  const SimuladorPage({super.key});
+  const SimuladorPage({super.key, required this.onThemeToggle});
+
+  final void Function(bool isDark) onThemeToggle;
 
   @override
   State<SimuladorPage> createState() => _SimuladorPageState();
@@ -11,11 +20,75 @@ class _SimuladorPageState extends State<SimuladorPage> {
   final _averageConsumptionController = TextEditingController();
   final _cityController = TextEditingController();
 
-  // Mock resultado
-  final Map<String, String> mockResult = {
-    "sistemaRecomendado": "5 kWp",
-    "roi": "4,2 anos",
-  };
+  String? sistemaRecomendado;
+  String? roi;
+  Usuario? usuario;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarUsuario();
+  }
+
+  void _carregarUsuario() async {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Usuario) {
+      setState(() {
+        usuario = args;
+      });
+    } else {
+      final usuarioLogado = await UsuarioDao().buscarUsuarioLogado();
+      if (mounted) {
+        setState(() {
+          usuario = usuarioLogado;
+        });
+      }
+    }
+  }
+
+  void _simular() async {
+    final consumo = double.tryParse(_averageConsumptionController.text);
+    final cidade = _cityController.text;
+
+    if (consumo == null || cidade.isEmpty || usuario == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha os dados corretamente')),
+      );
+      return;
+    }
+
+    final economiaAnual = consumo * 12 * 0.8;
+    final custoInicial = consumo * 100;
+    final roiCalculado = custoInicial / economiaAnual;
+
+    final String dataHoje = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    final simulacao = SimulacaoSolar(
+      consumoMensal: consumo,
+      localizacao: cidade,
+      roi: roiCalculado,
+      economiaAnual: economiaAnual,
+      usuarioId: usuario!.id!,
+      dataSimulacao: dataHoje,
+    );
+
+    await SimulacaoSolarDao().inserir(simulacao);
+
+    setState(() {
+      sistemaRecomendado = "${(consumo / 100).toStringAsFixed(1)} kWp";
+      roi = "${roiCalculado.toStringAsFixed(1)} anos";
+    });
+
+    _averageConsumptionController.clear();
+    _cityController.clear();
+  }
+
+  Future<void> _logout() async {
+    await UsuarioDao().limparUsuarioLogado();
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +100,12 @@ class _SimuladorPageState extends State<SimuladorPage> {
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
       ),
+      drawer: AppDrawer(
+        usuario: usuario,
+        onThemeToggle: widget.onThemeToggle,
+        onLogout: _logout,
+      ),
+      bottomNavigationBar: const AppBottomNavBar(currentRoute: '/simulador'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -36,8 +115,6 @@ class _SimuladorPageState extends State<SimuladorPage> {
               style: TextStyle(fontSize: 16, color: colorScheme.onSurface),
             ),
             const SizedBox(height: 16),
-
-            // Formulário
             TextField(
               controller: _averageConsumptionController,
               decoration: const InputDecoration(
@@ -53,9 +130,7 @@ class _SimuladorPageState extends State<SimuladorPage> {
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () {
-                // Lógica de simulação será adicionada depois
-              },
+              onPressed: usuario == null ? null : _simular,
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
@@ -63,36 +138,31 @@ class _SimuladorPageState extends State<SimuladorPage> {
               child: const Text("Simular"),
             ),
             const SizedBox(height: 24),
-
             const Divider(),
-
-            // Resultado mockado
-            Text(
-              "Resultado da Simulação:",
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-
-            Card(
-              color: Theme.of(context).cardColor,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.solar_power),
-                      title: const Text("Sistema Recomendado"),
-                      subtitle: Text(mockResult["sistemaRecomendado"]!),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.trending_up),
-                      title: const Text("Retorno sobre investimento (ROI)"),
-                      subtitle: Text(mockResult["roi"]!),
-                    ),
-                  ],
+            if (roi != null && sistemaRecomendado != null) ...[
+              Text("Resultado da Simulação:", style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 12),
+              Card(
+                color: Theme.of(context).cardColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.solar_power),
+                        title: const Text("Sistema Recomendado"),
+                        subtitle: Text(sistemaRecomendado!),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.trending_up),
+                        title: const Text("Retorno sobre investimento (ROI)"),
+                        subtitle: Text(roi!),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ]
           ],
         ),
       ),
