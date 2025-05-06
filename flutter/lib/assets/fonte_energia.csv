@@ -1,0 +1,7 @@
+ID_Fonte,Tipo,Descricao,Custo_Inicial,Beneficios
+1,Solar,"Usa a energia do sol para gerar eletricidade",10000,"Reduz a conta de luz, energia limpa e renovável"
+2,Eólica,"Usa o vento para gerar eletricidade",15000,"Reduz a dependência de fontes fósseis, energia limpa e renovável"
+3,Hidrelétrica,"Usa a força da água para gerar eletricidade",20000,"Fontes abundantes e renováveis, alta produção de energia"
+4,Biomassa,"Usa materiais orgânicos para gerar energia",12000,"Redução de resíduos, pode ser utilizado em várias formas de energia"
+5,Geotérmica,"Usa o calor da terra para gerar eletricidade",25000,"Fontes estáveis e de longo prazo, impacto ambiental baixo"
+6,Maré,"Usa o movimento das marés para gerar eletricidade",30000,"Energia limpa e renovável, previsibilidade na geração de energia"

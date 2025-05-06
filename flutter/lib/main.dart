@@ -7,8 +7,20 @@ import 'pages/home.dart';
 import 'pages/calc_page.dart';
 import 'pages/fornecedores.dart';
 import 'pages/simulador.dart';
+import 'package:flutter/foundation.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'package:sqflite_common/sqflite.dart';
+import 'database/app_database.dart';
 
-void main() {
+  
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  if (kIsWeb) {
+    // Registra o suporte SQLite para Web
+    databaseFactory = databaseFactoryFfiWeb;
+  }
+  await DatabaseHelper.initDB();
   runApp(
     MultiProvider(
       providers: [

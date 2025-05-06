@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
@@ -31,6 +18,21 @@
 
   <title>flutter_application_1</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- SQFLite Shared Worker registration -->
+  <script type="module">
+    if (typeof SharedWorker !== 'undefined') {
+      try {
+        const worker = new SharedWorker('sqflite_sw.js');
+        console.log("SharedWorker registered for sqflite.");
+      } catch (e) {
+        console.error("SharedWorker registration failed: ", e);
+      }
+    } else {
+      console.warn("SharedWorker is not supported in this browser.");
+    }
+  </script>
+  <script src="https://unpkg.com/url_launcher_web/url_launcher_web.dart.js"></script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

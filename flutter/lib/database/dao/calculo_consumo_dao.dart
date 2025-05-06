@@ -7,6 +7,12 @@ class CalculoConsumoDao {
     return await db.insert('CalculoConsumo', calculo.toMap());
   }
 
+  Future<List<CalculoConsumo>> listarTodos() async {
+    final db = await DatabaseHelper.initDB();
+    final result = await db.query('CalculoConsumo');
+    return result.map((e) => CalculoConsumo.fromMap(e)).toList();
+  }
+
   Future<List<CalculoConsumo>> listarPorUsuario(int usuarioId) async {
     final db = await DatabaseHelper.initDB();
     final result = await db.query(

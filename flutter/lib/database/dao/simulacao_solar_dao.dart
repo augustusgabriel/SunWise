@@ -7,6 +7,12 @@ class SimulacaoSolarDao {
     return await db.insert('SimulacaoSolar', simulacao.toMap());
   }
 
+  Future<List<SimulacaoSolar>> listarTodos() async {
+    final db = await DatabaseHelper.initDB();
+    final result = await db.query('SimulacaoSolar');
+    return result.map((e) => SimulacaoSolar.fromMap(e)).toList();
+  }
+
   Future<List<SimulacaoSolar>> listarPorUsuario(int usuarioId) async {
     final db = await DatabaseHelper.initDB();
     final result = await db.query(
